@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if(currentUser != null) {
             Log.i("User", "Current User-> " + currentUser.getPhoneNumber());
-            //updateUI(currentUser);
+            userIsLoggedIn(currentUser);
         }
     }
 
@@ -147,10 +147,10 @@ public class MainActivity extends AppCompatActivity {
                     public void onComplete(@NonNull Task<AuthResult> task) {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
-                            /*startActivity(new Intent(getApplicationContext(), MainPageActivity.class));
-                            finish();
-                            return;*/
                             Toast.makeText(getApplicationContext(),"Sign In successful",Toast.LENGTH_SHORT).show();
+                            startActivity(new Intent(getApplicationContext(), MainPageActivity.class));
+                            finish();
+                            return;
 
                         } else {
                             // Sign in failed, display a message and update the UI
@@ -161,6 +161,20 @@ public class MainActivity extends AppCompatActivity {
                         }
                     }
                 });
+    }
+
+    private void userIsLoggedIn( FirebaseUser user) {
+        Log.i("User","Inside userIsLoggedIn");
+        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if(user != null) {
+            Log.i("User",user.getDisplayName());
+            startActivity(new Intent(getApplicationContext(), MainPageActivity.class));
+            finish();
+            return;
+        }
+        else
+            Log.i("User","User is NULL");
     }
 
 }
