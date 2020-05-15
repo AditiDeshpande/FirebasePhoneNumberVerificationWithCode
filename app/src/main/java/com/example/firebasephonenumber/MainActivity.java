@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
         //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         if(user != null) {
-            Log.i("User",user.getDisplayName());
+            //Log.i("User",user.getDisplayName());
             startActivity(new Intent(getApplicationContext(), MainPageActivity.class));
             finish();
             return;
