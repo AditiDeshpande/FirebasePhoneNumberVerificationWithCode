@@ -1,8 +1,5 @@
 package com.example.firebasephonenumber;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,6 +7,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
@@ -20,10 +20,17 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.PhoneAuthCredential;
 import com.google.firebase.auth.PhoneAuthProvider;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity {
 
     private FirebaseAuth mAuth;
 
@@ -43,11 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
-        FirebaseUser currentUser = mAuth.getCurrentUser();
-        if(currentUser != null) {
-            Log.i("User", "Current User-> " + currentUser.getPhoneNumber());
-            userIsLoggedIn(currentUser);
-        }
+        userIsLoggedIn();
     }
 
     @Override
@@ -148,9 +151,33 @@ public class MainActivity extends AppCompatActivity {
                         if (task.isSuccessful()) {
                             // Sign in success, update UI with the signed-in user's information
                             Toast.makeText(getApplicationContext(),"Sign In successful",Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(getApplicationContext(), MainPageActivity.class));
-                            finish();
-                            return;
+
+                            final FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+                            if (user != null) {
+                                final DatabaseReference mUserDB = FirebaseDatabase.getInstance().getReference().child("user").child(user.getUid());
+                                //listener
+                                mUserDB.addListenerForSingleValueEvent(new ValueEventListener() {
+                                    @Override
+                                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                        if (!dataSnapshot.exists()) {
+                                            Map<String, Object> userMap = new HashMap<>();
+                                            userMap.put("phone", user.getPhoneNumber());
+                                            userMap.put("name", user.getDisplayName());
+                                            mUserDB.updateChildren(userMap);
+                                        }
+
+                                        userIsLoggedIn();
+                                    }
+
+                                    @Override
+                                    public void onCancelled(@NonNull DatabaseError databaseError) {
+                                    }
+                                });
+
+                            }
+
+
 
                         } else {
                             // Sign in failed, display a message and update the UI
@@ -163,12 +190,13 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
-    private void userIsLoggedIn( FirebaseUser user) {
+    private void userIsLoggedIn() {
         Log.i("User","Inside userIsLoggedIn");
-        //FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
-        if(user != null) {
-            //Log.i("User",user.getDisplayName());
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        if (currentUser != null) {
+
             startActivity(new Intent(getApplicationContext(), MainPageActivity.class));
             finish();
             return;
